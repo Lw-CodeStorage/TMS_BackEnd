@@ -99,7 +99,7 @@ app.post('/api', async (req, res) => {
 
             })
             break
-        case '更新課程':
+        case '更新課程(目前沒有用到)':
             await mysql.updataCourse(req.body.courseData).then((result) => {
                 if (result == '課程更新成功') {
                     console.log(result)
@@ -123,7 +123,16 @@ app.post('/api', async (req, res) => {
                 //console.log(err);
             })
             break
-        default:
+        case '刪除課程':
+            await mysql.deleteCourse(req.body.deleteCourseID).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '課程刪除成功', '訊息': '課程刪除成功' }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '課程刪除失敗', '訊息': '課程刪除失敗' }))
+                //console.log(err);
+            })
+            break
+            default:
             //console.log(...req.body);
             res.send(JSON.stringify({ "狀態": 'typeError', '訊息': '沒有type' }))
     }
