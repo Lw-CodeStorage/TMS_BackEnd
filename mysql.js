@@ -207,7 +207,6 @@ let updataCourse = (courseData) => {
 let getCourse = () => {
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
-        connection.query
         connection.query(`SELECT
         course.id,
         course.courseName,
@@ -221,6 +220,21 @@ let getCourse = () => {
         users.userName,
         users.email
         FROM course LEFT JOIN users ON course.userID = users.id  ORDER BY time DESC`, (error, result, fields) => {
+            if (error) {
+                // console.log(error);
+                reject(error)
+            } else {
+                //console.log(result);
+                resolve(result);
+            }
+        })
+        connection.end();
+    })
+}
+let deleteCourse = (deleteCourseID) => {
+    return new Promise((resolve, reject) => {
+        let connection = mysql.createConnection(con)
+        connection.query(`DELETE FROM course WHERE id='${deleteCourseID}'`, (error, result, fields) => {
             if (error) {
                 // console.log(error);
                 reject(error)
@@ -257,7 +271,8 @@ module.exports = {
     get_Course_ByUoc: get_Course_ByUoc,
     get_Task_ByOnet: get_Task_ByOnet,
     creatCourse: creatCourse,
-    updataCourse:updataCourse,
+    updataCourse: updataCourse,
     getUserCourse: getUserCourse,
-    getCourse: getCourse
+    getCourse: getCourse,
+    deleteCourse:deleteCourse
 }
