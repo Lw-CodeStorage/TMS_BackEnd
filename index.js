@@ -34,6 +34,16 @@ app.post('/api', async (req, res) => {
                     res.send(JSON.stringify({ "狀態": err }))
                 })
             break
+        case 'FB':
+            await mysql.FB(req.body.name, req.body.email, req.body.picture).then((data) => {
+                console.log(data);
+                })
+            await mysql.FB_userData(req.body.email).then((data) => {
+                console.log(data)
+                res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': data }))
+            })
+
+            break
         case '使用者資料':
             await mysql.userData(req.body.email).then((result) => {
                 res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
@@ -132,7 +142,7 @@ app.post('/api', async (req, res) => {
                 //console.log(err);
             })
             break
-            default:
+        default:
             //console.log(...req.body);
             res.send(JSON.stringify({ "狀態": 'typeError', '訊息': '沒有type' }))
     }
@@ -147,15 +157,7 @@ app.post('/api', async (req, res) => {
 //         //console.log(err);
 //     })
 // })
-app.post('/getUserCourse', async function (req, res) {
-    await mysql.getUserCourse(req.body.userID).then((res) => {
-        console.log(res);
-        // res.send(JSON.stringify({ '狀態': '課程設定成功', '訊息': '課程設定成功' }))
-    }).catch((err) => {
-        // res.send(JSON.stringify({ '狀態': '課程設定失敗', '訊息': '課程設定失敗' }))
-        console.log(err);
-    })
-})
+
 // app.post('/creatCourse', async function (req, res) {
 //     await mysql.creatCourse(req.body).then((result) => {
 //         //console.log(result);

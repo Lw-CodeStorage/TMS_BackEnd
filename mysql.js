@@ -73,6 +73,48 @@ let userData = (email) => {
     })
 
 }
+let FB = (userName, email, picture) => {
+    return new Promise( (resolve, reject) => {
+        let connection = mysql.createConnection(con)
+        connection.query(`SELECT email FROM users where email = '${email}'`, (error, result, fields) => {
+            if (result.length) {
+                //已註冊過 撈資料
+                connection.query(`SELECT * FROM users  WHERE email='${email}'`, (error, result, fields) => {
+                    if (error) {
+                        reject('會員資料發生錯誤')
+                    }
+                    //console.log('已註冊過');
+                     resolve('已註冊過')
+                })
+            } else {
+                //沒註冊 幫你註冊 
+                connection.query(`INSERT INTO users ( userName, passWord, email,phone, Authority,picture) VALUES ('${userName}', '', '${email}','', '學生','${picture}')`,
+                    (error, results, fields) => {
+                        if (error) {
+                            reject('註冊失敗')
+                        }
+                       // console.log('註冊成功')
+                        resolve('註冊成功')
+                    })
+            }
+            connection.end();
+        })
+
+    })
+}
+let FB_userData = (email)=>{
+    return new Promise((resolve, reject) => {
+        let connection = mysql.createConnection(con)
+        connection.query(`SELECT * FROM users  WHERE email='${email}'`, (error, result, fields) => {          
+                if (error) {
+                    reject('會員資料發生錯誤')
+                }
+               // console.log(result);
+                resolve(result[0]) 
+        })
+        connection.end();
+    })
+}
 let aqf_QID = (industry) => {
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
@@ -246,25 +288,13 @@ let deleteCourse = (deleteCourseID) => {
         connection.end();
     })
 }
-let getUserCourse = (userID) => {
-    return new Promise((resolve, reject) => {
-        let connection = mysql.createConnection(con)
-        connection.query(`SELECT *  FROM course WHERE userID = '${userID}'`, (error, result, fields) => {
-            if (error) {
-                // console.log(error);
-                reject(error)
-            } else {
-                //console.log(result);
-                resolve(result);
-            }
-        })
-        connection.end();
-    })
-}
+
 module.exports = {
     register: register,
     login: login,
     userData: userData,
+    FB: FB,
+    FB_userData:FB_userData,
     aqf_QID: aqf_QID,
     get_Uocid_ByQid: get_Uocid_ByQid,
     get_Onet_ByQid: get_Onet_ByQid,
@@ -272,7 +302,6 @@ module.exports = {
     get_Task_ByOnet: get_Task_ByOnet,
     creatCourse: creatCourse,
     updataCourse: updataCourse,
-    getUserCourse: getUserCourse,
     getCourse: getCourse,
-    deleteCourse:deleteCourse
+    deleteCourse: deleteCourse
 }
