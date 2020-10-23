@@ -37,7 +37,7 @@ app.post('/api', async (req, res) => {
         case 'FB':
             await mysql.FB(req.body.name, req.body.email, req.body.picture).then((data) => {
                 console.log(data);
-                })
+            })
             await mysql.FB_userData(req.body.email).then((data) => {
                 console.log(data)
                 res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': data }))
@@ -125,7 +125,7 @@ app.post('/api', async (req, res) => {
             })
             break
         case '取得課程':
-            await mysql.getCourse().then((result) => {
+            await mysql.getCourse(req.body.userID).then((result) => {
                 //console.log(res);
                 res.send(JSON.stringify({ '狀態': '課程下載成功', '訊息': result }))
             }).catch((err) => {
@@ -134,11 +134,35 @@ app.post('/api', async (req, res) => {
             })
             break
         case '刪除課程':
-            await mysql.deleteCourse(req.body.deleteCourseID).then((result) => {
+            await mysql.deleteCourse(req.body.deleteCourseID, req.body.userID)
+            .then((result) => {
                 //console.log(res);
-                res.send(JSON.stringify({ '狀態': '課程刪除成功', '訊息': '課程刪除成功' }))
+                if (result == '課程刪除成功') {
+                    res.send(JSON.stringify({ '狀態': '課程刪除成功', '訊息': result }))
+                } else {
+                    res.send(JSON.stringify({ '狀態': '課程有相依不能刪除', '訊息': result }))
+                }
+
             }).catch((err) => {
                 res.send(JSON.stringify({ '狀態': '課程刪除失敗', '訊息': '課程刪除失敗' }))
+                //console.log(err);
+            })
+            break
+        case '開設班級':
+            await mysql.creatClass(req.body.classData).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '班級開設成功', '訊息': '班級開設成功' }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '班級開設失敗', '訊息': '班級開設失敗' }))
+                //console.log(err);
+            })
+            break
+        case '取得班級':
+            await mysql.getClass(req.body.userID).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '班級下載成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '班級下載失敗', '訊息': '班級下載失敗' }))
                 //console.log(err);
             })
             break

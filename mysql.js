@@ -74,7 +74,7 @@ let userData = (email) => {
 
 }
 let FB = (userName, email, picture) => {
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
         connection.query(`SELECT email FROM users where email = '${email}'`, (error, result, fields) => {
             if (result.length) {
@@ -84,7 +84,7 @@ let FB = (userName, email, picture) => {
                         reject('會員資料發生錯誤')
                     }
                     //console.log('已註冊過');
-                     resolve('已註冊過')
+                    resolve('已註冊過')
                 })
             } else {
                 //沒註冊 幫你註冊 
@@ -93,7 +93,7 @@ let FB = (userName, email, picture) => {
                         if (error) {
                             reject('註冊失敗')
                         }
-                       // console.log('註冊成功')
+                        // console.log('註冊成功')
                         resolve('註冊成功')
                     })
             }
@@ -102,15 +102,15 @@ let FB = (userName, email, picture) => {
 
     })
 }
-let FB_userData = (email)=>{
+let FB_userData = (email) => {
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
-        connection.query(`SELECT * FROM users  WHERE email='${email}'`, (error, result, fields) => {          
-                if (error) {
-                    reject('會員資料發生錯誤')
-                }
-               // console.log(result);
-                resolve(result[0]) 
+        connection.query(`SELECT * FROM users  WHERE email='${email}'`, (error, result, fields) => {
+            if (error) {
+                reject('會員資料發生錯誤')
+            }
+            // console.log(result);
+            resolve(result[0])
         })
         connection.end();
     })
@@ -246,46 +246,145 @@ let updataCourse = (courseData) => {
         connection.end();
     })
 }
-let getCourse = () => {
+let getCourse = (userID) => {
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
-        connection.query(`SELECT
-        course.id,
-        course.courseName,
-        course.courseInfo,
-        course.courseLink,
-        course.industry,
-        course.qidSelect,
-        course.courseSelect,
-        course.positionSelect,
-        course.time,
-        users.userName,
-        users.email
-        FROM course LEFT JOIN users ON course.userID = users.id  ORDER BY time DESC`, (error, result, fields) => {
+        connection.query(`SELECT *
+        FROM course WHERE userID = '${userID}' `, (error, result, fields) => {
             if (error) {
-                // console.log(error);
+                //console.log(error);
                 reject(error)
             } else {
-                //console.log(result);
+                // console.log(result);
                 resolve(result);
             }
         })
         connection.end();
     })
 }
-let deleteCourse = (deleteCourseID) => {
+//刪除課程要偵測有沒有被綁在班上面
+let deleteCourse = (deleteCourseID, userID) => {
     return new Promise((resolve, reject) => {
         let connection = mysql.createConnection(con)
-        connection.query(`DELETE FROM course WHERE id='${deleteCourseID}'`, (error, result, fields) => {
+        connection.query(`SELECT 班級名稱,加入班級的課程 FROM class WHERE userID = '${userID}'`, (error, result, fields) => {
+
+            if (result.length) {
+                let repeatClass = []
+                //console.log(result);
+                //有班級 就要拆解 加入班級的課程json
+                result.forEach((item, index) => {
+                    //將被加入班級的課 解json
+                    let courseInClass = JSON.parse(item['加入班級的課程'])
+                    //判斷 要刪除的課有沒有在般裡面
+                    courseInClass.forEach((item2) => {
+                        // console.log(item)
+                        if (item2.courseID == deleteCourseID) {
+                            repeatClass.push(item['班級名稱'])
+                        }
+                    })
+
+                });
+
+                if (repeatClass.length) {
+                    //有班級有這門課 不能刪
+                    resolve(repeatClass);
+
+                } else {
+                    //沒有班級有這門 可以刪
+                    connection.query(`DELETE FROM course WHERE id = '${deleteCourseID}'`, (error, result, fields) => {
+                        if (error) {
+                            console.log(error)
+                            reject(error)
+                        } else {
+                            resolve('課程刪除成功');
+                        }
+                    })
+                }
+            } else {
+                //沒有班級 直接刪除課程
+                connection.query(`DELETE FROM course WHERE id = '${deleteCourseID}'`, (error, result, fields) => {
+                    if (error) {
+                        console.log(error)
+                        reject(error)
+                    } else {
+                        resolve('課程刪除成功');
+                    }
+                })
+            }
+
+        })
+
+        
+    })
+}
+let creatClass = (classData) => {
+    return new Promise((resolve, reject) => {
+        let connection = mysql.createConnection(con)
+        // console.log(classData['開班資訊']['加入班級的課程'])
+        connection.query(
+            `INSERT INTO
+            class(userID,imageUid,班級名稱,上課地點,學科,術科,報名連結,人數限制,聯絡人,聯絡電話,開始日期,結束日期,描述,加入班級的課程)
+            VALUES(
+            '${classData['userID']}',
+            '${classData['imageUid']}',
+            '${classData['班級名稱']}',
+            '${classData['上課地點']}',
+            '${classData['學科']}',
+            '${classData['術科']}',
+            '${classData['報名連結']}',
+            '${classData['人數限制']}',
+            '${classData['聯絡人']}',
+            '${classData['聯絡電話']}',
+            '${classData['開始日期']}',
+            '${classData['結束日期']}',
+            '${classData['描述']}',
+            '${classData['加入班級的課程']}'
+            )`
+            , (error, result, fields) => {
+                if (error) {
+                    console.log(error);
+                    reject(error)
+                } else {
+                    console.log(result);
+                    resolve(result);
+                }
+            })
+        connection.end();
+    })
+}
+let getClass = (userID) => {
+    return new Promise((resolve, reject) => {
+        let connection = mysql.createConnection(con)
+        connection.query(`SELECT * FROM class WHERE userID = '${userID}'`, (error, result, fields) => {
             if (error) {
-                // console.log(error);
+                 console.log(error);
                 reject(error)
             } else {
-                //console.log(result);
+                console.log(result);
                 resolve(result);
             }
         })
         connection.end();
+    })
+}
+let updataClass = (classData)=>{
+    return new Promise((resolve,reject)=>{
+        let connection = mysql.createConnection(con)
+        connection.query(`UPDATE class SET
+        班級名稱 = '${classData.班級名稱}',
+        上課地點 = '${classData.co上課地點urseInfo}',
+        學科 = '${classData.學科}',
+        術科 =  '${classData.術科}',
+        報名連結 =  '${classData.報名連結}',
+        聯絡人 = '${classData.聯絡人}',
+        聯絡電話 = '${classData.聯絡電話}',
+        開始日期 = '${classData.開始日期}',
+        結束日期 = '${classData.結束日期}',
+        描述 = '${classData.描述}',
+        加入班級的課程 = '${classData.加入班級的課程}'
+        WHERE  id = '${classData.userID}'`,(error,result)=>{
+
+        })
     })
 }
 
@@ -294,14 +393,16 @@ module.exports = {
     login: login,
     userData: userData,
     FB: FB,
-    FB_userData:FB_userData,
+    FB_userData: FB_userData,
     aqf_QID: aqf_QID,
     get_Uocid_ByQid: get_Uocid_ByQid,
     get_Onet_ByQid: get_Onet_ByQid,
     get_Course_ByUoc: get_Course_ByUoc,
     get_Task_ByOnet: get_Task_ByOnet,
     creatCourse: creatCourse,
-    updataCourse: updataCourse,
     getCourse: getCourse,
-    deleteCourse: deleteCourse
+    updataCourse: updataCourse,
+    deleteCourse: deleteCourse,
+    creatClass: creatClass,
+    getClass:getClass
 }
