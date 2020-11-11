@@ -35,12 +35,20 @@ app.post('/api', async (req, res) => {
                 })
             break
         case 'FB':
-            await mysql.FB(req.body.name, req.body.email, req.body.picture).then((data) => {
+            await mysql.FB(req.body.name, req.body.email, req.body.picture)
+            .then((data) => {
                 console.log(data);
             })
-            await mysql.FB_userData(req.body.email).then((data) => {
+            .catch((err) => {
+                res.send(JSON.stringify({ "狀態": err }))
+            })
+            await mysql.FB_userData(req.body.email)
+            .then((data) => {
                 console.log(data)
                 res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': data }))
+            })
+            .catch((err) => {
+                res.send(JSON.stringify({ "狀態": err }))
             })
 
             break
@@ -124,8 +132,8 @@ app.post('/api', async (req, res) => {
 
             })
             break
-        case '取得課程':
-            await mysql.getCourse(req.body.userID).then((result) => {
+        case '取得老師課程':
+            await mysql.getTeacherCourse(req.body.userID).then((result) => {
                 //console.log(res);
                 res.send(JSON.stringify({ '狀態': '課程下載成功', '訊息': result }))
             }).catch((err) => {
@@ -133,20 +141,29 @@ app.post('/api', async (req, res) => {
                 //console.log(err);
             })
             break
-        case '刪除課程':
-            await mysql.deleteCourse(req.body.deleteCourseID, req.body.userID)
-            .then((result) => {
+        case '取得課程資料':
+            await mysql.getCourseData(req.body.courseID).then((result) => {
                 //console.log(res);
-                if (result == '課程刪除成功') {
-                    res.send(JSON.stringify({ '狀態': '課程刪除成功', '訊息': result }))
-                } else {
-                    res.send(JSON.stringify({ '狀態': '課程有相依不能刪除', '訊息': result }))
-                }
-
+                res.send(JSON.stringify({ '狀態': '取得課程資料成功', '訊息': result }))
             }).catch((err) => {
-                res.send(JSON.stringify({ '狀態': '課程刪除失敗', '訊息': '課程刪除失敗' }))
+                res.send(JSON.stringify({ '狀態': '取得課程資料失敗', '訊息': err }))
                 //console.log(err);
             })
+            break
+        case '刪除老師課程':
+            await mysql.deleteTeacherCourse(req.body.deleteCourseID, req.body.userID)
+                .then((result) => {
+                    //console.log(res);
+                    if (result == '課程刪除成功') {
+                        res.send(JSON.stringify({ '狀態': '課程刪除成功', '訊息': result }))
+                    } else {
+                        res.send(JSON.stringify({ '狀態': '課程有相依不能刪除', '訊息': result }))
+                    }
+
+                }).catch((err) => {
+                    res.send(JSON.stringify({ '狀態': '課程刪除失敗', '訊息': '課程刪除失敗' }))
+                    //console.log(err);
+                })
             break
         case '開設班級':
             await mysql.creatClass(req.body.classData).then((result) => {
@@ -157,13 +174,109 @@ app.post('/api', async (req, res) => {
                 //console.log(err);
             })
             break
-        case '取得班級':
-            await mysql.getClass(req.body.userID).then((result) => {
+        case '取得老師班級':
+            await mysql.getTeacherClass(req.body.userID).then((result) => {
                 //console.log(res);
                 res.send(JSON.stringify({ '狀態': '班級下載成功', '訊息': result }))
             }).catch((err) => {
+
                 res.send(JSON.stringify({ '狀態': '班級下載失敗', '訊息': '班級下載失敗' }))
                 //console.log(err);
+            })
+            break
+        case '更新老師班級':
+
+            await mysql.updataTeacherClass(req.body.classData).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '班級更新成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '班級更新失敗', '訊息': '班級更新失敗' }))
+                //console.log(err);
+            })
+            break
+        case '取得該班報名人數':
+            await mysql.getClassApllyNumber(req.body.classID).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '取得該班報名人數成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '取得該班報名人數失敗', '訊息': err }))
+                //console.log(err);
+            })
+            break
+        case '取得該班報名學員資料':
+            await mysql.getClassApllyPerson(req.body.classID).then((result) => {
+                //console.log(res);
+                res.send(JSON.stringify({ '狀態': '取得該班報名學員資料', '訊息': result }))
+            }).catch((err) => {
+                //res.send(JSON.stringify({ '狀態': '取得該班報名人數失敗', '訊息': err }))
+                console.log(err);
+            })
+            break
+        case '更新報名狀態':
+            await mysql.comfirmApplyState(req.body.state, req.body.applyID).then((result) => {
+                console.log(result);
+                res.send(JSON.stringify({ '狀態': '更新報名狀態成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '更新報名狀態失敗', '訊息': err }))
+                console.log(err);
+            })
+            break
+        case '取得評分項目':
+            await mysql.classScoreState(req.body.classID).then((result) => {
+                //console.log(result);
+                res.send(JSON.stringify({ '狀態': ' 取得評分項目成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': ' 取得評分項目失敗', '訊息': err }))
+                // console.log(err);
+            })
+            break
+        case '更新評分項目':
+            await mysql.updataScore(req.body.scoreType, req.body.scoreData, req.body.applyID).then((result) => {
+                //console.log(result);
+                //return mysql.getScore(req.body.applyID)
+                res.send(JSON.stringify({ '狀態': ' 取得評分成功', '訊息': data }))
+                // }).then((data) => {
+                //     //console.log(data);
+                //     res.send(JSON.stringify({ '狀態': ' 取得評分成功', '訊息': data }))
+            })
+                .catch((err) => {
+                    //console.log(err);
+                    res.send(JSON.stringify({ '狀態': ' 取得評分失敗', '訊息': err }))
+                })
+            break
+        case '取得評分分數':
+            //console.log(req.body.arrayApplyID);
+            await mysql.getScore(req.body.arrayApplyID).then((result) => {
+                console.log(result);
+                res.send(JSON.stringify({ '狀態': ' 取得評分成功', '訊息': result }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': ' 取得評分失敗', '訊息': err }))
+                console.log(err);
+            })
+            break
+        ////////////////????????/////////?????????////
+        case '報名班級':
+            await mysql.userApply(req.body.applyData).then((data) => {
+                res.send(JSON.stringify({ '狀態': '報名成功', '訊息': data }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '報名失敗', '訊息': 'err' }))
+            })
+            break
+        case '使用者已報名班級':
+
+            await mysql.userGetClass(req.body.userID).then((data) => {
+               
+
+                 res.send(JSON.stringify({ '狀態': '使用者已報名班級查詢成功', '訊息': data }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '使用者已報名班級查詢失敗', '訊息': err }))
+            })
+            break
+        case '公開取得班級':
+            await mysql.publicGetClass().then((data) => {
+                res.send(JSON.stringify({ '狀態': '公開班級取得成功', '訊息': data }))
+            }).catch((err) => {
+                res.send(JSON.stringify({ '狀態': '公開班級取得失敗', '訊息': err }))
             })
             break
         default:
@@ -172,192 +285,6 @@ app.post('/api', async (req, res) => {
     }
 })
 
-// app.post('/getCourse', async function (req, res) {
-//     await mysql.getCourse().then((result) => {
-//         //console.log(res);
-//         res.send(JSON.stringify({ '狀態': '課程下載成功', '訊息': result }))
-//     }).catch((err) => {
-//         res.send(JSON.stringify({ '狀態': '課程下載失敗', '訊息': '課程下載失敗' }))
-//         //console.log(err);
-//     })
-// })
-
-// app.post('/creatCourse', async function (req, res) {
-//     await mysql.creatCourse(req.body).then((result) => {
-//         //console.log(result);
-//         res.send(JSON.stringify({ '狀態': '課程設定成功', '訊息': '課程設定成功' }))
-//     }).catch((err) => {
-//         res.send(JSON.stringify({ '狀態': '課程設定失敗', '訊息': '課程設定失敗' }))
-//         // console.log(err);
-//     })
-// })
-app.post('/courseImageUpload', async function (req, res) {
-    //開課照片上傳
-    let uploadTest = multer({
-        storage: multer.diskStorage({
-            //照片存放位置
-            destination: function (req, file, cb) {
-                cb(null, './upload')
-            },
-            //檔案名稱
-            filename: function (req, file, cb) {
-                // console.log(file);
-                cb(null, `${file.originalname}.jpg`)
-            }
-        }),
-        //single對應的是資料名稱
-    }).single('courseImage')
-    // console.log(req.body);
-    uploadTest(req, res, function (err) {
-        if (err) {
-            //console.log('1');
-            res.send(JSON.stringify({ '狀態': '上傳異常', '訊息': '上傳失敗' }))
-        } else {
-            // console.log('0');
-            res.send(JSON.stringify({ '狀態': '上傳成功', '訊息': '上傳成功' }))
-        }
-    })
-})
-
-// //點擊職位 帶職位任務
-// app.post('/get_Task_ByOnet', async function (req, res) {
-//     try {
-//         let result = await mysql.get_Task_ByOnet(req.body.onet)
-//         if (result.length) {
-//             res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-//         } else {
-//             res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '無資料' }))
-//         }
-
-
-//     } catch {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '查詢失敗' }))
-//     }
-// })
-// //點擊課程 帶課程細節
-// app.post('/get_Course_ByUoc', async function (req, res) {
-//     try {
-//         let result = await mysql.get_Course_ByUoc(req.body.uoc, req.body.industry)
-//         if (result.length) {
-//             res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-//         } else {
-//             res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '無資料' }))
-//         }
-
-
-//     } catch {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '查詢失敗' }))
-//     }
-// })
-// //課程
-// app.post('/get_Uocid_ByQid', async function (req, res) {
-//     try {
-//         let result = await mysql.get_Uocid_ByQid(req.body.qid, req.body.industry)
-//         res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '查詢失敗' }))
-//     }
-// })
-// //職位
-// app.post('/get_Onet_ByQid', async function (req, res) {
-//     try {
-//         let result = await mysql.get_Onet_ByQid(req.body.qid, req.body.industry)
-//         res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '查詢失敗' }))
-//     }
-// })
-// //第一個下拉選單 ‘產業’
-// app.post('/aqf_QID', async function (req, res) {
-//     try {
-//         let result = await mysql.aqf_QID(req.body.industry)
-//         res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": '查詢失敗', '訊息': '查詢失敗' }))
-//     }
-// })
-
-// app.post('/upload', function (req, res) {
-//     let upload = multer({
-//         storage: multer.diskStorage({
-//             //照片存放位置
-//             destination: function (req, file, cb) {
-//                 cb(null, './upload')
-//             },
-//             //檔案名稱
-//             filename: function (req, file, cb) {
-//                 //console.log(file);
-//                 cb(null, `${file.originalname}.jpg`)
-//             }
-//         }),
-//         //single 對應照片的名字
-//     }).single('test')
-//     upload(req, res, function (err) {
-//         if (err) {
-
-//             res.send(JSON.stringify({ '狀態': '上傳異常', '訊息': '上傳失敗' }))
-//         } else {
-//             res.send(JSON.stringify({ '狀態': '上傳成功', '訊息': '上傳成功' }))
-//         }
-//     })
-// });
-
-// app.get('/image', (req, res) => {
-//     //post body 
-//     //get query
-//     //res.set('Content-Type', 'image/png')
-//     //回影照片路徑
-//     res.sendFile(`${__dirname}/upload/${req.query.email}.jpg`)
-// })
-
-// app.post('/userData', async (req, res) => {
-//     try {
-//         let result = await mysql.userData(req.body.email);
-//         res.send(JSON.stringify({ "狀態": '查詢成功', '訊息': result }))
-
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": error }))
-//     }
-// })
-
-// app.post('/register', async function (req, res) {
-//     try {
-//         let result = await mysql.register(req.body.name, req.body.password, req.body.email, req.body.phone);
-//         console.log(result);
-//         if (result == '信箱重複') {
-//             res.send(JSON.stringify({ "狀態": '註冊異常', '訊息': result }))
-//         } else {
-//             res.send(JSON.stringify({ "狀態": '註冊成功', '訊息': result }))
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": error }))
-//     }
-// });
-// app.post('/login', async (req, res) => {
-//     try {
-//         let result = await mysql.login(req.body.email, req.body.password);
-//         console.log(result);
-//         if (result == '帳號或密碼不存在') {
-//             res.send(JSON.stringify({ "狀態": '登入異常', '訊息': result }))
-//         } else {
-//             res.send(JSON.stringify({ "狀態": '登入成功', '訊息': result }))
-//             user = result
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         res.send(JSON.stringify({ "狀態": error }))
-//     }
-// })
 app.use('/test', async (req, res) => {
     res.send(JSON.stringify({ '/test': 'test' }))
 })
